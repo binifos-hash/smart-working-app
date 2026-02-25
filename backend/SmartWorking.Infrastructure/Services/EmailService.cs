@@ -1,7 +1,8 @@
+using System.Net.Http.Headers;
+using System.Text;
+using System.Text.Json;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using SendGrid;
-using SendGrid.Helpers.Mail;
 using SmartWorking.Domain.Interfaces;
 
 namespace SmartWorking.Infrastructure.Services;
@@ -16,8 +17,8 @@ public class EmailService : IEmailService
 
     public EmailService(IConfiguration config, ILogger<EmailService> logger)
     {
-        _apiKey      = config["SendGrid:ApiKey"] ?? "";
-        _senderEmail = config["Email:SenderEmail"] ?? "bini.fos@gmail.com";
+        _apiKey      = config["Resend:ApiKey"] ?? "";
+        _senderEmail = config["Email:SenderEmail"] ?? "onboarding@resend.dev";
         _senderName  = config["Email:SenderName"] ?? "Smart Working App";
         _frontendUrl = config["Frontend:BaseUrl"] ?? "http://localhost:5173";
         _logger      = logger;
@@ -52,12 +53,12 @@ public class EmailService : IEmailService
                 <a href="{approveUrl}"
                    style="background:#16a34a; color:white; padding:12px 28px; border-radius:6px;
                           text-decoration:none; font-weight:bold; margin-right:16px;">
-                  &#x2705; Approva
+                  Approva
                 </a>
                 <a href="{rejectUrl}"
                    style="background:#dc2626; color:white; padding:12px 28px; border-radius:6px;
                           text-decoration:none; font-weight:bold;">
-                  &#x274C; Rifiuta
+                  Rifiuta
                 </a>
               </div>
               <p style="color:#6b7280; font-size:12px;">
@@ -74,7 +75,7 @@ public class EmailService : IEmailService
         string toEmail, string employeeName, DateOnly date, string status)
     {
         var isApproved = status == "Approved";
-        var statusText = isApproved ? "APPROVATA ✅" : "RIFIUTATA ❌";
+        var statusText = isApproved ? "APPROVATA" : "RIFIUTATA";
         var color      = isApproved ? "#16a34a" : "#dc2626";
 
         var body = $"""
@@ -83,7 +84,7 @@ public class EmailService : IEmailService
               <h2 style="color: {color};">Richiesta Smart Working {statusText}</h2>
               <p>Ciao <strong>{employeeName}</strong>,</p>
               <p>La tua richiesta di smart working per il giorno <strong>{date:dd/MM/yyyy}</strong>
-                 è stata <strong style="color:{color};">{(isApproved ? "approvata" : "rifiutata")}</strong>.</p>
+                 e stata <strong style="color:{color};">{(isApproved ? "approvata" : "rifiutata")}</strong>.</p>
               <p style="color:#6b7280; font-size:12px;">
                 Accedi all'applicazione per visualizzare tutti i dettagli.
               </p>
@@ -98,21 +99,28 @@ public class EmailService : IEmailService
     {
         if (string.IsNullOrEmpty(_apiKey))
         {
-            _logger.LogWarning("SendGrid API key not configured – email not sent");
+            _logger.LogWarning("Resend API key not configured – email not sent");
             return;
         }
 
-        var client  = new SendGridClient(_apiKey);
-        var from    = new EmailAddress(_senderEmail, _senderName);
-        var to      = new EmailAddress(toEmail);
-        var msg     = MailHelper.CreateSingleEmail(from, to, subject, plainTextContent: null, htmlContent: htmlBody);
+        using var http = new HttpClient();
+        http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _apiKey);
 
-        var response = await client.SendEmailAsync(msg);
+        var payload = JsonSerializer.Serialize(new
+        {
+            from    = $"{_senderName} <{_senderEmail}>",
+            to      = new[] { toEmail },
+            subject = subject,
+            html    = htmlBody
+        });
+
+        var content  = new StringContent(payload, Encoding.UTF8, "application/json");
+        var response = await http.PostAsync("https://api.resend.com/emails", content);
 
         if (!response.IsSuccessStatusCode)
         {
-            var body = await response.Body.ReadAsStringAsync();
-            throw new InvalidOperationException($"SendGrid error {(int)response.StatusCode}: {body}");
+            var body = await response.Content.ReadAsStringAsync();
+            throw new InvalidOperationException($"Resend error {(int)response.StatusCode}: {body}");
         }
     }
 }
