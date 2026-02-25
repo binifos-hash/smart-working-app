@@ -46,21 +46,13 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-// CORS — allow frontend (localhost + tutti i subdomini *.vercel.app)
+// CORS
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
     {
-        var frontendUrl = builder.Configuration["Frontend:BaseUrl"] ?? "";
         policy
-            .SetIsOriginAllowed(origin =>
-            {
-                if (string.IsNullOrEmpty(origin)) return false;
-                var uri = new Uri(origin);
-                return uri.Host == "localhost"
-                    || uri.Host.EndsWith(".vercel.app")
-                    || (!string.IsNullOrEmpty(frontendUrl) && origin == frontendUrl);
-            })
+            .AllowAnyOrigin()
             .AllowAnyHeader()
             .AllowAnyMethod();
     });
