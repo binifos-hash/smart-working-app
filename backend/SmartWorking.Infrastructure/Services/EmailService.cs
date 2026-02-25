@@ -1,24 +1,26 @@
-using MailKit.Net.Smtp;
-using MailKit.Security;
-using MimeKit;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
+using SendGrid;
+using SendGrid.Helpers.Mail;
 using SmartWorking.Domain.Interfaces;
 
 namespace SmartWorking.Infrastructure.Services;
 
 public class EmailService : IEmailService
 {
-    private readonly IConfiguration _config;
+    private readonly string _apiKey;
     private readonly string _senderEmail;
-    private readonly string _senderPassword;
+    private readonly string _senderName;
     private readonly string _frontendUrl;
+    private readonly ILogger<EmailService> _logger;
 
-    public EmailService(IConfiguration config)
+    public EmailService(IConfiguration config, ILogger<EmailService> logger)
     {
-        _config = config;
-        _senderEmail = _config["Email:SenderEmail"] ?? "bini.fos@gmail.com";
-        _senderPassword = _config["Email:SenderPassword"] ?? "";
-        _frontendUrl = _config["Frontend:BaseUrl"] ?? "http://localhost:5173";
+        _apiKey      = config["SendGrid:ApiKey"] ?? "";
+        _senderEmail = config["Email:SenderEmail"] ?? "bini.fos@gmail.com";
+        _senderName  = config["Email:SenderName"] ?? "Smart Working App";
+        _frontendUrl = config["Frontend:BaseUrl"] ?? "http://localhost:5173";
+        _logger      = logger;
     }
 
     public async Task SendRequestCreatedEmailAsync(
@@ -26,7 +28,7 @@ public class EmailService : IEmailService
         string? description, int requestId, string actionToken)
     {
         var approveUrl = $"{_frontendUrl}/action?token={actionToken}&action=approve";
-        var rejectUrl = $"{_frontendUrl}/action?token={actionToken}&action=reject";
+        var rejectUrl  = $"{_frontendUrl}/action?token={actionToken}&action=reject";
 
         var body = $"""
             <html>
@@ -50,12 +52,12 @@ public class EmailService : IEmailService
                 <a href="{approveUrl}"
                    style="background:#16a34a; color:white; padding:12px 28px; border-radius:6px;
                           text-decoration:none; font-weight:bold; margin-right:16px;">
-                  ✅ Approva
+                  &#x2705; Approva
                 </a>
                 <a href="{rejectUrl}"
                    style="background:#dc2626; color:white; padding:12px 28px; border-radius:6px;
                           text-decoration:none; font-weight:bold;">
-                  ❌ Rifiuta
+                  &#x274C; Rifiuta
                 </a>
               </div>
               <p style="color:#6b7280; font-size:12px;">
@@ -73,7 +75,7 @@ public class EmailService : IEmailService
     {
         var isApproved = status == "Approved";
         var statusText = isApproved ? "APPROVATA ✅" : "RIFIUTATA ❌";
-        var color = isApproved ? "#16a34a" : "#dc2626";
+        var color      = isApproved ? "#16a34a" : "#dc2626";
 
         var body = $"""
             <html>
@@ -94,16 +96,23 @@ public class EmailService : IEmailService
 
     private async Task SendEmailAsync(string toEmail, string subject, string htmlBody)
     {
-        var message = new MimeMessage();
-        message.From.Add(new MailboxAddress("Smart Working App", _senderEmail));
-        message.To.Add(MailboxAddress.Parse(toEmail));
-        message.Subject = subject;
-        message.Body = new TextPart("html") { Text = htmlBody };
+        if (string.IsNullOrEmpty(_apiKey))
+        {
+            _logger.LogWarning("SendGrid API key not configured – email not sent");
+            return;
+        }
 
-        using var client = new SmtpClient();
-        await client.ConnectAsync("smtp.gmail.com", 587, SecureSocketOptions.StartTls);
-        await client.AuthenticateAsync(_senderEmail, _senderPassword);
-        await client.SendAsync(message);
-        await client.DisconnectAsync(true);
+        var client  = new SendGridClient(_apiKey);
+        var from    = new EmailAddress(_senderEmail, _senderName);
+        var to      = new EmailAddress(toEmail);
+        var msg     = MailHelper.CreateSingleEmail(from, to, subject, plainTextContent: null, htmlContent: htmlBody);
+
+        var response = await client.SendEmailAsync(msg);
+
+        if (!response.IsSuccessStatusCode)
+        {
+            var body = await response.Body.ReadAsStringAsync();
+            throw new InvalidOperationException($"SendGrid error {(int)response.StatusCode}: {body}");
+        }
     }
 }
