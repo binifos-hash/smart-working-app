@@ -66,19 +66,21 @@ public class RequestService : IRequestService
 
         var created = await _requestRepository.CreateAsync(request);
 
-        // Send email to manager — fire and forget, email failure must not block the request
-        try
+        // Fire and forget — do not await, email must never slow down the response
+        var managerEmail = manager.Email;
+        var employeeName = $"{user.FirstName} {user.LastName}";
+        var createdId = created.Id;
+        var date = dto.Date;
+        var description = dto.Description;
+        _ = Task.Run(async () =>
         {
-            await _emailService.SendRequestCreatedEmailAsync(
-                manager.Email,
-                $"{user.FirstName} {user.LastName}",
-                dto.Date,
-                dto.Description,
-                created.Id,
-                actionToken
-            );
-        }
-        catch { /* log in future */ }
+            try
+            {
+                await _emailService.SendRequestCreatedEmailAsync(
+                    managerEmail, employeeName, date, description, createdId, actionToken);
+            }
+            catch { }
+        });
 
         return MapToDto(created);
     }
@@ -97,17 +99,16 @@ public class RequestService : IRequestService
 
         await _requestRepository.UpdateAsync(request);
 
-        // Notify the employee
-        try
+        // Fire and forget — notify employee without blocking the response
+        var empEmail = request.User.Email;
+        var empName = $"{request.User.FirstName} {request.User.LastName}";
+        var reqDate = request.Date;
+        var reqStatus = request.Status.ToString();
+        _ = Task.Run(async () =>
         {
-            await _emailService.SendRequestStatusEmailAsync(
-                request.User.Email,
-                $"{request.User.FirstName} {request.User.LastName}",
-                request.Date,
-                request.Status.ToString()
-            );
-        }
-        catch { /* log in future */ }
+            try { await _emailService.SendRequestStatusEmailAsync(empEmail, empName, reqDate, reqStatus); }
+            catch { }
+        });
 
         return MapToDto(request);
     }
@@ -124,16 +125,16 @@ public class RequestService : IRequestService
 
         await _requestRepository.UpdateAsync(request);
 
-        try
+        // Fire and forget
+        var empEmail2 = request.User.Email;
+        var empName2 = $"{request.User.FirstName} {request.User.LastName}";
+        var reqDate2 = request.Date;
+        var reqStatus2 = request.Status.ToString();
+        _ = Task.Run(async () =>
         {
-            await _emailService.SendRequestStatusEmailAsync(
-                request.User.Email,
-                $"{request.User.FirstName} {request.User.LastName}",
-                request.Date,
-                request.Status.ToString()
-            );
-        }
-        catch { /* log in future */ }
+            try { await _emailService.SendRequestStatusEmailAsync(empEmail2, empName2, reqDate2, reqStatus2); }
+            catch { }
+        });
 
         return true;
     }
