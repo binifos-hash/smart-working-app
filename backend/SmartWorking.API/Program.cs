@@ -10,6 +10,10 @@ using SmartWorking.Infrastructure.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Render (e altri host) imposta PORT come env var
+var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
+builder.WebHost.UseUrls($"http://+:{port}");
+
 // Database
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
