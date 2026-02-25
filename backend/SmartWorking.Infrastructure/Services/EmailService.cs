@@ -17,8 +17,8 @@ public class EmailService : IEmailService
 
     public EmailService(IConfiguration config, ILogger<EmailService> logger)
     {
-        _apiKey      = config["Resend:ApiKey"] ?? "";
-        _senderEmail = config["Email:SenderEmail"] ?? "onboarding@resend.dev";
+        _apiKey      = config["Brevo:ApiKey"] ?? "";
+        _senderEmail = config["Email:SenderEmail"] ?? "bini.fos@gmail.com";
         _senderName  = config["Email:SenderName"] ?? "Smart Working App";
         _frontendUrl = config["Frontend:BaseUrl"] ?? "http://localhost:5173";
         _logger      = logger;
@@ -99,28 +99,29 @@ public class EmailService : IEmailService
     {
         if (string.IsNullOrEmpty(_apiKey))
         {
-            _logger.LogWarning("Resend API key not configured – email not sent");
+            _logger.LogWarning("Brevo API key not configured – email not sent");
             return;
         }
 
         using var http = new HttpClient();
-        http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _apiKey);
+        http.DefaultRequestHeaders.Add("api-key", _apiKey);
+        http.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
         var payload = JsonSerializer.Serialize(new
         {
-            from    = $"{_senderName} <{_senderEmail}>",
-            to      = new[] { toEmail },
-            subject = subject,
-            html    = htmlBody
+            sender      = new { name = _senderName, email = _senderEmail },
+            to          = new[] { new { email = toEmail } },
+            subject     = subject,
+            htmlContent = htmlBody
         });
 
         var content  = new StringContent(payload, Encoding.UTF8, "application/json");
-        var response = await http.PostAsync("https://api.resend.com/emails", content);
+        var response = await http.PostAsync("https://api.brevo.com/v3/smtp/email", content);
 
         if (!response.IsSuccessStatusCode)
         {
-            var body = await response.Content.ReadAsStringAsync();
-            throw new InvalidOperationException($"Resend error {(int)response.StatusCode}: {body}");
+            var respBody = await response.Content.ReadAsStringAsync();
+            throw new InvalidOperationException($"Brevo error {(int)response.StatusCode}: {respBody}");
         }
     }
 }
