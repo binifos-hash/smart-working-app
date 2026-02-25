@@ -66,15 +66,19 @@ public class RequestService : IRequestService
 
         var created = await _requestRepository.CreateAsync(request);
 
-        // Send email to manager
-        await _emailService.SendRequestCreatedEmailAsync(
-            manager.Email,
-            $"{user.FirstName} {user.LastName}",
-            dto.Date,
-            dto.Description,
-            created.Id,
-            actionToken
-        );
+        // Send email to manager — fire and forget, email failure must not block the request
+        try
+        {
+            await _emailService.SendRequestCreatedEmailAsync(
+                manager.Email,
+                $"{user.FirstName} {user.LastName}",
+                dto.Date,
+                dto.Description,
+                created.Id,
+                actionToken
+            );
+        }
+        catch { /* log in future */ }
 
         return MapToDto(created);
     }
@@ -94,12 +98,16 @@ public class RequestService : IRequestService
         await _requestRepository.UpdateAsync(request);
 
         // Notify the employee
-        await _emailService.SendRequestStatusEmailAsync(
-            request.User.Email,
-            $"{request.User.FirstName} {request.User.LastName}",
-            request.Date,
-            request.Status.ToString()
-        );
+        try
+        {
+            await _emailService.SendRequestStatusEmailAsync(
+                request.User.Email,
+                $"{request.User.FirstName} {request.User.LastName}",
+                request.Date,
+                request.Status.ToString()
+            );
+        }
+        catch { /* log in future */ }
 
         return MapToDto(request);
     }
@@ -116,12 +124,16 @@ public class RequestService : IRequestService
 
         await _requestRepository.UpdateAsync(request);
 
-        await _emailService.SendRequestStatusEmailAsync(
-            request.User.Email,
-            $"{request.User.FirstName} {request.User.LastName}",
-            request.Date,
-            request.Status.ToString()
-        );
+        try
+        {
+            await _emailService.SendRequestStatusEmailAsync(
+                request.User.Email,
+                $"{request.User.FirstName} {request.User.LastName}",
+                request.Date,
+                request.Status.ToString()
+            );
+        }
+        catch { /* log in future */ }
 
         return true;
     }
