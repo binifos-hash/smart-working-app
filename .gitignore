@@ -1,0 +1,30 @@
+# .NET build artifacts
+backend/**/bin/
+backend/**/obj/
+backend/**/.vs/
+
+# .NET user-specific files
+*.user
+*.suo
+
+# EF Migrations should be committed - no rule here
+
+# Secrets (never commit these)
+backend/**/appsettings.Production.json
+backend/**/*secrets*.json
+
+# Node / React
+frontend/node_modules/
+frontend/dist/
+frontend/.env
+frontend/.env.local
+
+# General
+.DS_Store
+Thumbs.db
+*.log
+*.tmp
+
+# IDE
+.idea/
+.vscode/settings.json
