@@ -18,6 +18,9 @@ api.interceptors.request.use((config) => {
 export const login = (email: string, password: string) =>
   api.post<AuthUser>('/auth/login', { email, password }).then((r) => r.data)
 
+export const register = (email: string, firstName: string, lastName: string, password: string) =>
+  api.post<AuthUser>('/auth/register', { email, firstName, lastName, password }).then((r) => r.data)
+
 // Requests
 export const getMyRequests = () =>
   api.get<SmartWorkingRequest[]>('/requests').then((r) => r.data)

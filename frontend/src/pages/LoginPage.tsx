@@ -3,15 +3,33 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import * as api from '../services/api'
 
+type Mode = 'login' | 'register'
+
 export default function LoginPage() {
   const { login } = useAuth()
   const navigate = useNavigate()
+  const [mode, setMode] = useState<Mode>('login')
+
+  // Login fields
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+
+  // Register fields
+  const [regEmail, setRegEmail] = useState('')
+  const [regFirstName, setRegFirstName] = useState('')
+  const [regLastName, setRegLastName] = useState('')
+  const [regPassword, setRegPassword] = useState('')
+  const [regConfirm, setRegConfirm] = useState('')
+
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
-  async function handleSubmit(e: FormEvent) {
+  function switchMode(m: Mode) {
+    setMode(m)
+    setError('')
+  }
+
+  async function handleLogin(e: FormEvent) {
     e.preventDefault()
     setError('')
     setLoading(true)
@@ -26,10 +44,40 @@ export default function LoginPage() {
     }
   }
 
+  async function handleRegister(e: FormEvent) {
+    e.preventDefault()
+    setError('')
+    if (regPassword !== regConfirm) {
+      setError('Le password non coincidono.')
+      return
+    }
+    if (regPassword.length < 6) {
+      setError('La password deve essere di almeno 6 caratteri.')
+      return
+    }
+    setLoading(true)
+    try {
+      const user = await api.register(regEmail, regFirstName, regLastName, regPassword)
+      login(user)
+      navigate('/employee', { replace: true })
+    } catch (err: unknown) {
+      const msg =
+        (err as { response?: { data?: { message?: string } } })?.response?.data?.message
+        ?? 'Errore durante la registrazione.'
+      setError(msg)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const inputClass =
+    'w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent'
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
       <div className="bg-white rounded-2xl shadow-lg p-8 w-full max-w-md">
-        <div className="text-center mb-8">
+        {/* Logo */}
+        <div className="text-center mb-6">
           <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-600 rounded-2xl mb-4">
             <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
@@ -37,47 +85,99 @@ export default function LoginPage() {
             </svg>
           </div>
           <h1 className="text-2xl font-bold text-gray-900">Smart Working Manager</h1>
-          <p className="text-gray-500 mt-1">Accedi al tuo account</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-            <input
-              type="email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="mario@esempio.it"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
-            <input
-              type="password"
-              required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="••••••••"
-            />
-          </div>
-
-          {error && (
-            <div className="bg-red-50 text-red-700 text-sm px-3 py-2 rounded-lg border border-red-200">
-              {error}
-            </div>
-          )}
-
+        {/* Tab toggle */}
+        <div className="flex gap-1 bg-gray-100 p-1 rounded-xl mb-6">
           <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-medium py-2 px-4 rounded-lg transition-colors"
+            type="button"
+            onClick={() => switchMode('login')}
+            className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors ${
+              mode === 'login' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'
+            }`}
           >
-            {loading ? 'Accesso in corso...' : 'Accedi'}
+            Accedi
           </button>
-        </form>
+          <button
+            type="button"
+            onClick={() => switchMode('register')}
+            className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors ${
+              mode === 'register' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'
+            }`}
+          >
+            Registrati
+          </button>
+        </div>
+
+        {/* Login form */}
+        {mode === 'login' && (
+          <form onSubmit={handleLogin} className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+              <input type="email" required value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className={inputClass} placeholder="mario@esempio.it" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
+              <input type="password" required value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className={inputClass} placeholder="••••••••" />
+            </div>
+            {error && (
+              <div className="bg-red-50 text-red-700 text-sm px-3 py-2 rounded-lg border border-red-200">{error}</div>
+            )}
+            <button type="submit" disabled={loading}
+              className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-medium py-2 px-4 rounded-lg transition-colors">
+              {loading ? 'Accesso in corso...' : 'Accedi'}
+            </button>
+          </form>
+        )}
+
+        {/* Register form */}
+        {mode === 'register' && (
+          <form onSubmit={handleRegister} className="space-y-4">
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Nome</label>
+                <input type="text" required value={regFirstName}
+                  onChange={(e) => setRegFirstName(e.target.value)}
+                  className={inputClass} placeholder="Mario" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Cognome</label>
+                <input type="text" required value={regLastName}
+                  onChange={(e) => setRegLastName(e.target.value)}
+                  className={inputClass} placeholder="Rossi" />
+              </div>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+              <input type="email" required value={regEmail}
+                onChange={(e) => setRegEmail(e.target.value)}
+                className={inputClass} placeholder="mario@esempio.it" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
+              <input type="password" required value={regPassword}
+                onChange={(e) => setRegPassword(e.target.value)}
+                className={inputClass} placeholder="Min. 6 caratteri" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Conferma password</label>
+              <input type="password" required value={regConfirm}
+                onChange={(e) => setRegConfirm(e.target.value)}
+                className={inputClass} placeholder="••••••••" />
+            </div>
+            {error && (
+              <div className="bg-red-50 text-red-700 text-sm px-3 py-2 rounded-lg border border-red-200">{error}</div>
+            )}
+            <button type="submit" disabled={loading}
+              className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-medium py-2 px-4 rounded-lg transition-colors">
+              {loading ? 'Registrazione in corso...' : 'Crea account'}
+            </button>
+          </form>
+        )}
       </div>
     </div>
   )

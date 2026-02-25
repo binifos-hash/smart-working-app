@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using SmartWorking.Domain.Entities;
+using SmartWorking.Domain.Enums;
 using SmartWorking.Domain.Interfaces;
 using SmartWorking.Infrastructure.Data;
 
@@ -22,6 +23,9 @@ public class UserRepository : IUserRepository
 
     public async Task<IEnumerable<User>> GetEmployeesByManagerIdAsync(int managerId)
         => await _context.Users.Where(u => u.ManagerId == managerId).ToListAsync();
+
+    public async Task<User?> GetFirstManagerAsync()
+        => await _context.Users.FirstOrDefaultAsync(u => u.Role == UserRole.Manager);
 
     public async Task<User> CreateAsync(User user)
     {

@@ -5,6 +5,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using SmartWorking.Application.DTOs.Auth;
 using SmartWorking.Application.Services;
+using SmartWorking.Domain.Entities;
+using SmartWorking.Domain.Enums;
 using SmartWorking.Domain.Interfaces;
 
 namespace SmartWorking.Infrastructure.Services;
@@ -37,6 +39,41 @@ public class AuthService : IAuthService
             Role = user.Role.ToString(),
             UserId = user.Id
         };
+    }
+
+    public async Task<(LoginResponseDto? Response, string? Error)> RegisterAsync(RegisterDto dto)
+    {
+        var existing = await _userRepository.GetByEmailAsync(dto.Email);
+        if (existing != null)
+            return (null, "Esiste già un account con questa email.");
+
+        var manager = await _userRepository.GetFirstManagerAsync();
+        if (manager == null)
+            return (null, "Nessun gestore trovato. Contatta l'amministratore.");
+
+        var user = new User
+        {
+            Email = dto.Email.Trim().ToLower(),
+            FirstName = dto.FirstName.Trim(),
+            LastName = dto.LastName.Trim(),
+            PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password),
+            Role = UserRole.Employee,
+            ManagerId = manager.Id,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        var created = await _userRepository.CreateAsync(user);
+        var token = GenerateJwt(created.Id, created.Email, created.Role.ToString());
+
+        return (new LoginResponseDto
+        {
+            Token = token,
+            Email = created.Email,
+            FirstName = created.FirstName,
+            LastName = created.LastName,
+            Role = created.Role.ToString(),
+            UserId = created.Id
+        }, null);
     }
 
     private string GenerateJwt(int userId, string email, string role)
