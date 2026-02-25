@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Logging;
 using SmartWorking.Application.DTOs.Requests;
 using SmartWorking.Application.Services;
 using SmartWorking.Domain.Entities;
@@ -11,15 +12,18 @@ public class RequestService : IRequestService
     private readonly ISmartWorkingRequestRepository _requestRepository;
     private readonly IUserRepository _userRepository;
     private readonly IEmailService _emailService;
+    private readonly ILogger<RequestService> _logger;
 
     public RequestService(
         ISmartWorkingRequestRepository requestRepository,
         IUserRepository userRepository,
-        IEmailService emailService)
+        IEmailService emailService,
+        ILogger<RequestService> logger)
     {
         _requestRepository = requestRepository;
         _userRepository = userRepository;
         _emailService = emailService;
+        _logger = logger;
     }
 
     public async Task<IEnumerable<RequestDto>> GetMyRequestsAsync(int userId)
@@ -66,7 +70,7 @@ public class RequestService : IRequestService
 
         var created = await _requestRepository.CreateAsync(request);
 
-        // Fire and forget — do not await, email must never slow down the response
+        // Fire and forget — email must never slow down the response
         var managerEmail = manager.Email;
         var employeeName = $"{user.FirstName} {user.LastName}";
         var createdId = created.Id;
@@ -78,8 +82,12 @@ public class RequestService : IRequestService
             {
                 await _emailService.SendRequestCreatedEmailAsync(
                     managerEmail, employeeName, date, description, createdId, actionToken);
+                _logger.LogInformation("Request-created email sent to {Email}", managerEmail);
             }
-            catch { }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to send request-created email to {Email}", managerEmail);
+            }
         });
 
         return MapToDto(created);
@@ -106,8 +114,15 @@ public class RequestService : IRequestService
         var reqStatus = request.Status.ToString();
         _ = Task.Run(async () =>
         {
-            try { await _emailService.SendRequestStatusEmailAsync(empEmail, empName, reqDate, reqStatus); }
-            catch { }
+            try
+            {
+                await _emailService.SendRequestStatusEmailAsync(empEmail, empName, reqDate, reqStatus);
+                _logger.LogInformation("Status email sent to {Email}", empEmail);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to send status email to {Email}", empEmail);
+            }
         });
 
         return MapToDto(request);
@@ -125,15 +140,21 @@ public class RequestService : IRequestService
 
         await _requestRepository.UpdateAsync(request);
 
-        // Fire and forget
-        var empEmail2 = request.User.Email;
-        var empName2 = $"{request.User.FirstName} {request.User.LastName}";
-        var reqDate2 = request.Date;
-        var reqStatus2 = request.Status.ToString();
+        var empEmail = request.User.Email;
+        var empName = $"{request.User.FirstName} {request.User.LastName}";
+        var reqDate = request.Date;
+        var reqStatus = request.Status.ToString();
         _ = Task.Run(async () =>
         {
-            try { await _emailService.SendRequestStatusEmailAsync(empEmail2, empName2, reqDate2, reqStatus2); }
-            catch { }
+            try
+            {
+                await _emailService.SendRequestStatusEmailAsync(empEmail, empName, reqDate, reqStatus);
+                _logger.LogInformation("Status email sent to {Email}", empEmail);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to send status email to {Email}", empEmail);
+            }
         });
 
         return true;
