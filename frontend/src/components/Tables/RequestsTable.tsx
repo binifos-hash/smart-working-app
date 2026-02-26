@@ -41,80 +41,142 @@ export default function RequestsTable({
     )
   }
 
+  const hasActions = !!(onApprove || onReject)
+
   return (
-    <div className="overflow-x-auto rounded-xl border border-gray-200 dark:border-gray-700">
-      <table className="w-full text-sm">
-        <thead className="bg-gray-50 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-600">
-          <tr>
-            {showEmployee && (
-              <th className="text-left px-4 py-3 font-medium text-gray-600 dark:text-gray-300">Dipendente</th>
+    <>
+      {/* ── Mobile: card list ── */}
+      <div className="sm:hidden space-y-3">
+        {requests.map((r) => (
+          <div key={r.id} className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
+            <div className="flex items-start justify-between gap-2 mb-2">
+              <div className="min-w-0">
+                {showEmployee && (
+                  <p className="font-medium text-gray-900 dark:text-white text-sm truncate">
+                    {r.employeeName}
+                  </p>
+                )}
+                <p className={`font-semibold text-gray-900 dark:text-white ${showEmployee ? 'text-sm' : 'text-base'}`}>
+                  {format(new Date(r.date + 'T00:00:00'), 'dd MMMM yyyy', { locale: it })}
+                </p>
+              </div>
+              <span className={`inline-flex flex-shrink-0 px-2.5 py-0.5 rounded-full text-xs font-medium border ${STATUS_BADGE[r.status]}`}>
+                {STATUS_LABEL[r.status]}
+              </span>
+            </div>
+
+            {r.description && (
+              <p className="text-sm text-gray-500 dark:text-gray-400 mb-3 line-clamp-2">
+                {r.description}
+              </p>
             )}
-            <th className="text-left px-4 py-3 font-medium text-gray-600 dark:text-gray-300">Data</th>
-            <th className="text-left px-4 py-3 font-medium text-gray-600 dark:text-gray-300">Descrizione</th>
-            <th className="text-left px-4 py-3 font-medium text-gray-600 dark:text-gray-300">Stato</th>
-            <th className="text-left px-4 py-3 font-medium text-gray-600 dark:text-gray-300">Richiesta il</th>
-            {(onApprove || onReject) && (
-              <th className="text-left px-4 py-3 font-medium text-gray-600 dark:text-gray-300">Azioni</th>
-            )}
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
-          {requests.map((r) => (
-            <tr key={r.id} className="bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
-              {showEmployee && (
-                <td className="px-4 py-3">
-                  <div className="font-medium text-gray-900 dark:text-white">{r.employeeName}</div>
-                  <div className="text-xs text-gray-400">{r.employeeEmail}</div>
-                </td>
-              )}
-              <td className="px-4 py-3 font-medium text-gray-900 dark:text-white">
-                {format(new Date(r.date + 'T00:00:00'), 'dd MMM yyyy', { locale: it })}
-              </td>
-              <td className="px-4 py-3 text-gray-500 dark:text-gray-400 max-w-[200px]">
-                <span className="truncate block" title={r.description ?? ''}>
-                  {r.description ?? <span className="italic text-gray-300 dark:text-gray-600">—</span>}
-                </span>
-              </td>
-              <td className="px-4 py-3">
-                <span className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-medium border ${STATUS_BADGE[r.status]}`}>
-                  {STATUS_LABEL[r.status]}
-                </span>
-              </td>
-              <td className="px-4 py-3 text-gray-400">
+
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-xs text-gray-400">
                 {format(new Date(r.createdAt), 'dd/MM/yyyy HH:mm')}
-              </td>
-              {(onApprove || onReject) && (
-                <td className="px-4 py-3">
-                  {r.status === 'Pending' ? (
-                    <div className="flex gap-2">
-                      {onApprove && (
-                        <button
-                          onClick={() => onApprove(r.id)}
-                          disabled={loadingId === r.id}
-                          className="bg-green-50 hover:bg-green-100 dark:bg-green-900/20 dark:hover:bg-green-900/40 text-green-700 dark:text-green-400 border border-green-200 dark:border-green-700 text-xs font-medium px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50"
-                        >
-                          Approva
-                        </button>
-                      )}
-                      {onReject && (
-                        <button
-                          onClick={() => onReject(r.id)}
-                          disabled={loadingId === r.id}
-                          className="bg-red-50 hover:bg-red-100 dark:bg-red-900/20 dark:hover:bg-red-900/40 text-red-700 dark:text-red-400 border border-red-200 dark:border-red-700 text-xs font-medium px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50"
-                        >
-                          Rifiuta
-                        </button>
-                      )}
-                    </div>
-                  ) : (
-                    <span className="text-gray-300 dark:text-gray-600 text-xs">—</span>
+              </span>
+              {hasActions && r.status === 'Pending' && (
+                <div className="flex gap-2">
+                  {onApprove && (
+                    <button
+                      onClick={() => onApprove(r.id)}
+                      disabled={loadingId === r.id}
+                      className="bg-green-50 hover:bg-green-100 dark:bg-green-900/20 dark:hover:bg-green-900/40 text-green-700 dark:text-green-400 border border-green-200 dark:border-green-700 text-xs font-medium px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50"
+                    >
+                      Approva
+                    </button>
                   )}
-                </td>
+                  {onReject && (
+                    <button
+                      onClick={() => onReject(r.id)}
+                      disabled={loadingId === r.id}
+                      className="bg-red-50 hover:bg-red-100 dark:bg-red-900/20 dark:hover:bg-red-900/40 text-red-700 dark:text-red-400 border border-red-200 dark:border-red-700 text-xs font-medium px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50"
+                    >
+                      Rifiuta
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* ── Desktop: table ── */}
+      <div className="hidden sm:block overflow-x-auto rounded-xl border border-gray-200 dark:border-gray-700">
+        <table className="w-full text-sm">
+          <thead className="bg-gray-50 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-600">
+            <tr>
+              {showEmployee && (
+                <th className="text-left px-4 py-3 font-medium text-gray-600 dark:text-gray-300">Dipendente</th>
+              )}
+              <th className="text-left px-4 py-3 font-medium text-gray-600 dark:text-gray-300">Data</th>
+              <th className="text-left px-4 py-3 font-medium text-gray-600 dark:text-gray-300">Descrizione</th>
+              <th className="text-left px-4 py-3 font-medium text-gray-600 dark:text-gray-300">Stato</th>
+              <th className="text-left px-4 py-3 font-medium text-gray-600 dark:text-gray-300">Richiesta il</th>
+              {hasActions && (
+                <th className="text-left px-4 py-3 font-medium text-gray-600 dark:text-gray-300">Azioni</th>
               )}
             </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+          </thead>
+          <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
+            {requests.map((r) => (
+              <tr key={r.id} className="bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                {showEmployee && (
+                  <td className="px-4 py-3">
+                    <div className="font-medium text-gray-900 dark:text-white">{r.employeeName}</div>
+                    <div className="text-xs text-gray-400">{r.employeeEmail}</div>
+                  </td>
+                )}
+                <td className="px-4 py-3 font-medium text-gray-900 dark:text-white">
+                  {format(new Date(r.date + 'T00:00:00'), 'dd MMM yyyy', { locale: it })}
+                </td>
+                <td className="px-4 py-3 text-gray-500 dark:text-gray-400 max-w-[200px]">
+                  <span className="truncate block" title={r.description ?? ''}>
+                    {r.description ?? <span className="italic text-gray-300 dark:text-gray-600">—</span>}
+                  </span>
+                </td>
+                <td className="px-4 py-3">
+                  <span className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-medium border ${STATUS_BADGE[r.status]}`}>
+                    {STATUS_LABEL[r.status]}
+                  </span>
+                </td>
+                <td className="px-4 py-3 text-gray-400">
+                  {format(new Date(r.createdAt), 'dd/MM/yyyy HH:mm')}
+                </td>
+                {hasActions && (
+                  <td className="px-4 py-3">
+                    {r.status === 'Pending' ? (
+                      <div className="flex gap-2">
+                        {onApprove && (
+                          <button
+                            onClick={() => onApprove(r.id)}
+                            disabled={loadingId === r.id}
+                            className="bg-green-50 hover:bg-green-100 dark:bg-green-900/20 dark:hover:bg-green-900/40 text-green-700 dark:text-green-400 border border-green-200 dark:border-green-700 text-xs font-medium px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50"
+                          >
+                            Approva
+                          </button>
+                        )}
+                        {onReject && (
+                          <button
+                            onClick={() => onReject(r.id)}
+                            disabled={loadingId === r.id}
+                            className="bg-red-50 hover:bg-red-100 dark:bg-red-900/20 dark:hover:bg-red-900/40 text-red-700 dark:text-red-400 border border-red-200 dark:border-red-700 text-xs font-medium px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50"
+                          >
+                            Rifiuta
+                          </button>
+                        )}
+                      </div>
+                    ) : (
+                      <span className="text-gray-300 dark:text-gray-600 text-xs">—</span>
+                    )}
+                  </td>
+                )}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </>
   )
 }

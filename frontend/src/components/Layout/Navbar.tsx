@@ -12,29 +12,44 @@ export default function Navbar() {
     navigate('/login')
   }
 
+  const initials = `${user?.firstName?.[0] ?? ''}${user?.lastName?.[0] ?? ''}`.toUpperCase()
+
   return (
-    <nav className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 px-6 py-3 flex items-center justify-between">
-      <div className="flex items-center gap-3">
-        <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+    <nav className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 px-4 sm:px-6 py-3 flex items-center justify-between">
+      {/* Logo */}
+      <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+        <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center flex-shrink-0">
           <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
               d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
           </svg>
         </div>
-        <span className="font-semibold text-gray-900 dark:text-white">Smart Working Manager</span>
+        <span className="font-semibold text-gray-900 dark:text-white hidden sm:block truncate">
+          Smart Working Manager
+        </span>
       </div>
-      <div className="flex items-center gap-3">
-        <div className="text-right">
-          <p className="text-sm font-medium text-gray-900 dark:text-white">
+
+      {/* Right side */}
+      <div className="flex items-center gap-2 sm:gap-3">
+        {/* User info — desktop only */}
+        <div className="text-right hidden sm:block">
+          <p className="text-sm font-medium text-gray-900 dark:text-white leading-tight">
             {user?.firstName} {user?.lastName}
           </p>
           <p className="text-xs text-gray-500 dark:text-gray-400">
             {user?.role === 'Manager' ? 'Gestore' : 'Dipendente'}
           </p>
         </div>
+
+        {/* Avatar initials — mobile only */}
+        <div className="sm:hidden w-8 h-8 bg-blue-100 dark:bg-blue-900/40 rounded-full flex items-center justify-center text-blue-700 dark:text-blue-300 font-bold text-xs flex-shrink-0">
+          {initials}
+        </div>
+
+        {/* Theme toggle */}
         <button
           onClick={toggleTheme}
-          className="p-1.5 rounded-lg border border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+          className="p-2 rounded-lg border border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors flex-shrink-0"
           title={theme === 'light' ? 'Attiva modalità scura' : 'Attiva modalità chiara'}
         >
           {theme === 'light' ? (
@@ -49,11 +64,18 @@ export default function Navbar() {
             </svg>
           )}
         </button>
+
+        {/* Logout */}
         <button
           onClick={handleLogout}
-          className="text-sm text-gray-500 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition-colors border border-gray-200 dark:border-gray-700 hover:border-red-200 dark:hover:border-red-700 px-3 py-1.5 rounded-lg"
+          className="flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition-colors border border-gray-200 dark:border-gray-700 hover:border-red-200 dark:hover:border-red-700 px-2.5 sm:px-3 py-1.5 rounded-lg flex-shrink-0"
+          title="Esci"
         >
-          Esci
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+              d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+          </svg>
+          <span className="hidden sm:inline">Esci</span>
         </button>
       </div>
     </nav>

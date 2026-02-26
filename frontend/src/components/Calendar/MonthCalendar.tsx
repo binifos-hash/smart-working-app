@@ -35,7 +35,9 @@ export default function MonthCalendar({ requests, onDaySelect, showAddButton = f
   const end = endOfWeek(endOfMonth(currentMonth), { weekStartsOn: 1 })
   const days = eachDayOfInterval({ start, end })
 
-  const weekDays = ['Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab', 'Dom']
+  // On mobile show single letters, on desktop show abbreviations
+  const weekDaysShort = ['L', 'M', 'M', 'G', 'V', 'S', 'D']
+  const weekDaysLong  = ['Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab', 'Dom']
 
   function getRequestsForDay(day: Date): SmartWorkingRequest[] {
     return requests.filter((r) => isSameDay(new Date(r.date + 'T00:00:00'), day))
@@ -48,10 +50,10 @@ export default function MonthCalendar({ requests, onDaySelect, showAddButton = f
   return (
     <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
       {/* Header */}
-      <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-gray-700">
+      <div className="flex items-center justify-between px-4 sm:px-6 py-4 border-b border-gray-100 dark:border-gray-700">
         <button
           onClick={() => setCurrentMonth(subMonths(currentMonth, 1))}
-          className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+          className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
         >
           <svg className="w-5 h-5 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -62,7 +64,7 @@ export default function MonthCalendar({ requests, onDaySelect, showAddButton = f
         </h2>
         <button
           onClick={() => setCurrentMonth(addMonths(currentMonth, 1))}
-          className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+          className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
         >
           <svg className="w-5 h-5 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -71,15 +73,19 @@ export default function MonthCalendar({ requests, onDaySelect, showAddButton = f
       </div>
 
       {/* Grid */}
-      <div className="p-4">
-        <div className="grid grid-cols-7 mb-2">
-          {weekDays.map((d) => (
-            <div key={d} className="text-center text-xs font-medium text-gray-500 dark:text-gray-400 py-1">
-              {d}
+      <div className="p-2 sm:p-4">
+        {/* Week day headers */}
+        <div className="grid grid-cols-7 mb-1">
+          {weekDaysShort.map((d, i) => (
+            <div key={i} className="text-center py-1">
+              <span className="sm:hidden text-xs font-medium text-gray-500 dark:text-gray-400">{d}</span>
+              <span className="hidden sm:inline text-xs font-medium text-gray-500 dark:text-gray-400">{weekDaysLong[i]}</span>
             </div>
           ))}
         </div>
-        <div className="grid grid-cols-7 gap-1">
+
+        {/* Day cells */}
+        <div className="grid grid-cols-7 gap-0.5 sm:gap-1">
           {days.map((day) => {
             const dayRequests = getRequestsForDay(day)
             const isSelected = selectedDate && isSameDay(day, selectedDate)
@@ -90,32 +96,49 @@ export default function MonthCalendar({ requests, onDaySelect, showAddButton = f
                 key={day.toISOString()}
                 onClick={() => handleDayClick(day)}
                 className={`
-                  relative min-h-[64px] p-1 rounded-lg cursor-pointer transition-colors
+                  relative min-h-[44px] sm:min-h-[64px] p-0.5 sm:p-1 rounded-lg cursor-pointer transition-colors
                   ${inMonth ? 'hover:bg-gray-50 dark:hover:bg-gray-700' : 'opacity-30'}
                   ${isSelected ? 'ring-2 ring-blue-500 bg-blue-50 dark:bg-blue-900/30' : ''}
                 `}
               >
                 <span
                   className={`
-                    inline-flex items-center justify-center w-6 h-6 text-sm rounded-full
+                    inline-flex items-center justify-center w-6 h-6 text-xs sm:text-sm rounded-full
                     ${isToday(day) ? 'bg-blue-600 text-white font-bold' : 'text-gray-700 dark:text-gray-200'}
                   `}
                 >
                   {format(day, 'd')}
                 </span>
-                <div className="mt-1 flex flex-col gap-0.5">
-                  {dayRequests.slice(0, 3).map((r) => (
-                    <span
-                      key={r.id}
-                      className={`${STATUS_COLORS[r.status]} text-white text-[10px] rounded px-1 truncate`}
-                      title={r.employeeName}
-                    >
-                      {r.employeeName.split(' ')[0]}
-                    </span>
-                  ))}
-                  {dayRequests.length > 3 && (
-                    <span className="text-[10px] text-gray-400">+{dayRequests.length - 3}</span>
-                  )}
+
+                {/* Event dots on mobile, labels on desktop */}
+                <div className="mt-0.5 sm:mt-1">
+                  {/* Mobile: colored dots */}
+                  <div className="flex flex-wrap gap-0.5 sm:hidden">
+                    {dayRequests.slice(0, 3).map((r) => (
+                      <span
+                        key={r.id}
+                        className={`${STATUS_COLORS[r.status]} w-1.5 h-1.5 rounded-full block`}
+                      />
+                    ))}
+                    {dayRequests.length > 3 && (
+                      <span className="text-[8px] text-gray-400 leading-none">+{dayRequests.length - 3}</span>
+                    )}
+                  </div>
+                  {/* Desktop: name labels */}
+                  <div className="hidden sm:flex flex-col gap-0.5">
+                    {dayRequests.slice(0, 3).map((r) => (
+                      <span
+                        key={r.id}
+                        className={`${STATUS_COLORS[r.status]} text-white text-[10px] rounded px-1 truncate`}
+                        title={r.employeeName}
+                      >
+                        {r.employeeName.split(' ')[0]}
+                      </span>
+                    ))}
+                    {dayRequests.length > 3 && (
+                      <span className="text-[10px] text-gray-400">+{dayRequests.length - 3}</span>
+                    )}
+                  </div>
                 </div>
               </div>
             )
@@ -125,13 +148,13 @@ export default function MonthCalendar({ requests, onDaySelect, showAddButton = f
 
       {/* Add button */}
       {showAddButton && selectedDate && isSameMonth(selectedDate, currentMonth) && (
-        <div className="px-6 py-4 border-t border-gray-100 dark:border-gray-700 flex items-center justify-between">
+        <div className="px-4 sm:px-6 py-4 border-t border-gray-100 dark:border-gray-700 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
           <span className="text-sm text-gray-600 dark:text-gray-300">
             Selezionato: <strong>{format(selectedDate, 'dd MMMM yyyy', { locale: it })}</strong>
           </span>
           <button
             onClick={() => onDaySelect?.(selectedDate)}
-            className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium text-sm transition-colors"
+            className="w-full sm:w-auto flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium text-sm transition-colors"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -142,7 +165,7 @@ export default function MonthCalendar({ requests, onDaySelect, showAddButton = f
       )}
 
       {/* Legend */}
-      <div className="px-6 py-3 border-t border-gray-100 dark:border-gray-700 flex items-center gap-4">
+      <div className="px-4 sm:px-6 py-3 border-t border-gray-100 dark:border-gray-700 flex flex-wrap items-center gap-3 sm:gap-4">
         {Object.entries(STATUS_COLORS).map(([status, color]) => (
           <div key={status} className="flex items-center gap-1.5">
             <div className={`w-2.5 h-2.5 rounded-full ${color}`} />
