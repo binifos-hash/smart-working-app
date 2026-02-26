@@ -95,6 +95,28 @@ public class EmailService : IEmailService
         await SendEmailAsync(toEmail, $"Smart Working {date:dd/MM/yyyy} – {statusText}", body);
     }
 
+    public async Task SendTempPasswordEmailAsync(string toEmail, string firstName, string tempPassword)
+    {
+        var body = $"""
+            <html>
+            <body style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px;">
+              <h2 style="color: #2563eb;">Reset Password – Smart Working Manager</h2>
+              <p>Ciao <strong>{firstName}</strong>,</p>
+              <p>Hai richiesto il reset della password. Ecco la tua password temporanea:</p>
+              <div style="background:#f3f4f6; border:1px solid #d1d5db; border-radius:8px; padding:16px 24px; margin:20px 0; text-align:center;">
+                <span style="font-size:22px; font-weight:bold; letter-spacing:4px; color:#111827;">{tempPassword}</span>
+              </div>
+              <p>Accedi con questa password e cambiarla immediatamente nelle impostazioni del tuo account.</p>
+              <p style="color:#6b7280; font-size:12px;">
+                Se non hai richiesto il reset, puoi ignorare questa email. La tua vecchia password non è più valida.
+              </p>
+            </body>
+            </html>
+            """;
+
+        await SendEmailAsync(toEmail, "Reset Password – Smart Working Manager", body);
+    }
+
     private async Task SendEmailAsync(string toEmail, string subject, string htmlBody)
     {
         if (string.IsNullOrEmpty(_apiKey))

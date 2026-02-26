@@ -2,6 +2,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using SmartWorking.Application.DTOs.Auth;
 using SmartWorking.Application.Services;
@@ -15,11 +16,15 @@ public class AuthService : IAuthService
 {
     private readonly IUserRepository _userRepository;
     private readonly IConfiguration _config;
+    private readonly IEmailService _emailService;
+    private readonly ILogger<AuthService> _logger;
 
-    public AuthService(IUserRepository userRepository, IConfiguration config)
+    public AuthService(IUserRepository userRepository, IConfiguration config, IEmailService emailService, ILogger<AuthService> logger)
     {
         _userRepository = userRepository;
         _config = config;
+        _emailService = emailService;
+        _logger = logger;
     }
 
     public async Task<LoginResponseDto?> LoginAsync(LoginDto dto)
@@ -74,6 +79,38 @@ public class AuthService : IAuthService
             Role = created.Role.ToString(),
             UserId = created.Id
         }, null);
+    }
+
+    public async Task<bool> ForgotPasswordAsync(ForgotPasswordDto dto)
+    {
+        var user = await _userRepository.GetByEmailAsync(dto.Email.Trim().ToLower());
+        if (user == null)
+            return false;
+
+        var tempPassword = GenerateTempPassword();
+        user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(tempPassword);
+        await _userRepository.UpdateAsync(user);
+
+        _ = Task.Run(async () =>
+        {
+            try
+            {
+                await _emailService.SendTempPasswordEmailAsync(user.Email, user.FirstName, tempPassword);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to send temp password email to {Email}", user.Email);
+            }
+        });
+
+        return true;
+    }
+
+    private static string GenerateTempPassword()
+    {
+        const string chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789";
+        var random = new Random();
+        return new string(Enumerable.Range(0, 10).Select(_ => chars[random.Next(chars.Length)]).ToArray());
     }
 
     private string GenerateJwt(int userId, string email, string role)

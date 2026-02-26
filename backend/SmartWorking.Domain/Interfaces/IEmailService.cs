@@ -4,4 +4,5 @@ public interface IEmailService
 {
     Task SendRequestCreatedEmailAsync(string toEmail, string employeeName, DateOnly date, string? description, int requestId, string actionToken);
     Task SendRequestStatusEmailAsync(string toEmail, string employeeName, DateOnly date, string status);
+    Task SendTempPasswordEmailAsync(string toEmail, string firstName, string tempPassword);
 }

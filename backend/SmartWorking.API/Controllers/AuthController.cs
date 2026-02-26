@@ -40,4 +40,14 @@ public class AuthController : ControllerBase
 
         return Ok(response);
     }
+
+    [HttpPost("forgot-password")]
+    public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordDto dto)
+    {
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
+
+        await _authService.ForgotPasswordAsync(dto);
+        return Ok(new { message = "Se l'indirizzo è registrato, riceverai un'email con la password temporanea." });
+    }
 }
