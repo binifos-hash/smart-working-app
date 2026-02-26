@@ -17,10 +17,10 @@ public class EmailService : IEmailService
 
     public EmailService(IConfiguration config, ILogger<EmailService> logger)
     {
-        _apiKey      = config["MailerSend:ApiKey"] ?? "";
-        _senderEmail = config["Email:SenderEmail"] ?? "bini.fos@gmail.com";
-        _senderName  = config["Email:SenderName"] ?? "Smart Working App";
-        _frontendUrl = config["Frontend:BaseUrl"] ?? "http://localhost:5173";
+        _apiKey      = config["Resend:ApiKey"]     ?? "";
+        _senderEmail = config["Email:SenderEmail"] ?? "onboarding@resend.dev";
+        _senderName  = config["Email:SenderName"]  ?? "Smart Working App";
+        _frontendUrl = config["Frontend:BaseUrl"]  ?? "http://localhost:5173";
         _logger      = logger;
     }
 
@@ -121,7 +121,7 @@ public class EmailService : IEmailService
     {
         if (string.IsNullOrEmpty(_apiKey))
         {
-            _logger.LogWarning("MailerSend API key not configured – email not sent");
+            _logger.LogWarning("Resend API key not configured – email not sent");
             return;
         }
 
@@ -131,19 +131,19 @@ public class EmailService : IEmailService
 
         var payload = JsonSerializer.Serialize(new
         {
-            from    = new { name = _senderName, email = _senderEmail },
-            to      = new[] { new { email = toEmail } },
+            from    = $"{_senderName} <{_senderEmail}>",
+            to      = new[] { toEmail },
             subject = subject,
             html    = htmlBody
         });
 
         var content  = new StringContent(payload, Encoding.UTF8, "application/json");
-        var response = await http.PostAsync("https://api.mailersend.com/v1/email", content);
+        var response = await http.PostAsync("https://api.resend.com/emails", content);
 
         if (!response.IsSuccessStatusCode)
         {
             var respBody = await response.Content.ReadAsStringAsync();
-            throw new InvalidOperationException($"MailerSend error {(int)response.StatusCode}: {respBody}");
+            throw new InvalidOperationException($"Resend error {(int)response.StatusCode}: {respBody}");
         }
     }
 }
