@@ -89,6 +89,22 @@ public class RequestsController : ControllerBase
         }
     }
 
+    /// <summary>Manager: delete an approved or rejected request.</summary>
+    [HttpDelete("{id:int}")]
+    [Authorize(Roles = "Manager")]
+    public async Task<IActionResult> DeleteRequest(int id)
+    {
+        try
+        {
+            await _requestService.DeleteRequestAsync(id);
+            return NoContent();
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+    }
+
     /// <summary>Public: handle approve/reject from email link (token-based).</summary>
     [HttpGet("action")]
     [AllowAnonymous]

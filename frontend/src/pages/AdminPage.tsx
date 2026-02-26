@@ -41,6 +41,16 @@ export default function AdminPage() {
     }
   }
 
+  async function handleDelete(id: number) {
+    setLoadingId(id)
+    try {
+      await api.deleteRequest(id)
+      setRequests((prev) => prev.filter((r) => r.id !== id))
+    } finally {
+      setLoadingId(null)
+    }
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <Navbar />
@@ -135,6 +145,7 @@ export default function AdminPage() {
                 showEmployee
                 onApprove={(id) => handleStatus(id, 'Approved')}
                 onReject={(id) => handleStatus(id, 'Rejected')}
+                onDelete={handleDelete}
                 loadingId={loadingId}
               />
             )}

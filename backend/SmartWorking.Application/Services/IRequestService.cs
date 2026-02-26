@@ -10,4 +10,5 @@ public interface IRequestService
     Task<RequestDto> CreateRequestAsync(int userId, CreateRequestDto dto);
     Task<RequestDto> UpdateRequestStatusAsync(int requestId, string status, int managerId);
     Task<bool> HandleEmailActionAsync(string token, string action);
+    Task DeleteRequestAsync(int requestId);
 }

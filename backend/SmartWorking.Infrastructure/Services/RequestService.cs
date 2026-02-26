@@ -163,6 +163,17 @@ public class RequestService : IRequestService
         return true;
     }
 
+    public async Task DeleteRequestAsync(int requestId)
+    {
+        var request = await _requestRepository.GetByIdAsync(requestId)
+            ?? throw new InvalidOperationException("Request not found.");
+
+        if (request.Status == RequestStatus.Pending)
+            throw new InvalidOperationException("Non è possibile eliminare una richiesta in attesa.");
+
+        await _requestRepository.DeleteAsync(request);
+    }
+
     private static RequestDto MapToDto(SmartWorkingRequest r) => new()
     {
         Id = r.Id,

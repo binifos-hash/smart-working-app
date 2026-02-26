@@ -53,6 +53,12 @@ public class SmartWorkingRequestRepository : ISmartWorkingRequestRepository
         await _context.SaveChangesAsync();
     }
 
+    public async Task DeleteAsync(SmartWorkingRequest request)
+    {
+        _context.SmartWorkingRequests.Remove(request);
+        await _context.SaveChangesAsync();
+    }
+
     public async Task<bool> HasActiveRequestForDateAsync(int userId, DateOnly date)
         => await _context.SmartWorkingRequests.AnyAsync(r =>
             r.UserId == userId &&

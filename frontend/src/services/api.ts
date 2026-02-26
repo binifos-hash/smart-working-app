@@ -42,6 +42,9 @@ export const createRequest = (date: string, description?: string) =>
 export const updateRequestStatus = (id: number, status: 'Approved' | 'Rejected') =>
   api.put<SmartWorkingRequest>(`/requests/${id}/status`, { status }).then((r) => r.data)
 
+export const deleteRequest = (id: number) =>
+  api.delete(`/requests/${id}`)
+
 export const handleEmailAction = (token: string, action: string) =>
   api
     .get<{ message: string }>('/requests/action', { params: { token, action } })
