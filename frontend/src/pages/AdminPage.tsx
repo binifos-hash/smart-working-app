@@ -94,7 +94,7 @@ export default function AdminPage() {
         {/* Calendar tab */}
         {tab === 'calendar' && (
           <div className="space-y-6">
-            <MonthCalendar requests={requests} />
+            <MonthCalendar requests={requests} showDayDetail />
             {pendingRequests.length > 0 && (
               <div>
                 <h2 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white mb-3">

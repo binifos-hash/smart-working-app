@@ -55,6 +55,9 @@ public class RequestService : IRequestService
         var manager = await _userRepository.GetByIdAsync(user.ManagerId.Value)
             ?? throw new InvalidOperationException("Manager not found.");
 
+        if (await _requestRepository.HasActiveRequestForDateAsync(userId, dto.Date))
+            throw new InvalidOperationException("Hai già una richiesta attiva per questo giorno.");
+
         var actionToken = Guid.NewGuid().ToString("N") + Guid.NewGuid().ToString("N");
 
         var request = new SmartWorkingRequest

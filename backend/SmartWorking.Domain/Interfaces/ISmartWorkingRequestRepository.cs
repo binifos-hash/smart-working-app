@@ -11,4 +11,5 @@ public interface ISmartWorkingRequestRepository
     Task<IEnumerable<SmartWorkingRequest>> GetAllAsync();
     Task<SmartWorkingRequest> CreateAsync(SmartWorkingRequest request);
     Task UpdateAsync(SmartWorkingRequest request);
+    Task<bool> HasActiveRequestForDateAsync(int userId, DateOnly date);
 }

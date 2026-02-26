@@ -52,4 +52,10 @@ public class SmartWorkingRequestRepository : ISmartWorkingRequestRepository
         _context.SmartWorkingRequests.Update(request);
         await _context.SaveChangesAsync();
     }
+
+    public async Task<bool> HasActiveRequestForDateAsync(int userId, DateOnly date)
+        => await _context.SmartWorkingRequests.AnyAsync(r =>
+            r.UserId == userId &&
+            r.Date == date &&
+            r.Status != Domain.Enums.RequestStatus.Rejected);
 }
