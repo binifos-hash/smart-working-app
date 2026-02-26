@@ -15,9 +15,9 @@ services:
         value: SmartWorkingAPI
       - key: Jwt__Audience
         value: SmartWorkingApp
-      - key: Email__SenderEmail
-        value: bini.fos@gmail.com
-      - key: Email__SenderPassword
+      - key: MailerSend__ApiKey
         sync: false   # set manually in Render dashboard
+      - key: Email__SenderEmail
+        sync: false   # set manually (your MailerSend verified sender email)
       - key: Frontend__BaseUrl
         sync: false   # set manually (your Vercel URL)

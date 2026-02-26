@@ -17,7 +17,7 @@ public class EmailService : IEmailService
 
     public EmailService(IConfiguration config, ILogger<EmailService> logger)
     {
-        _apiKey      = config["Brevo:ApiKey"] ?? "";
+        _apiKey      = config["MailerSend:ApiKey"] ?? "";
         _senderEmail = config["Email:SenderEmail"] ?? "bini.fos@gmail.com";
         _senderName  = config["Email:SenderName"] ?? "Smart Working App";
         _frontendUrl = config["Frontend:BaseUrl"] ?? "http://localhost:5173";
@@ -99,29 +99,29 @@ public class EmailService : IEmailService
     {
         if (string.IsNullOrEmpty(_apiKey))
         {
-            _logger.LogWarning("Brevo API key not configured – email not sent");
+            _logger.LogWarning("MailerSend API key not configured – email not sent");
             return;
         }
 
         using var http = new HttpClient();
-        http.DefaultRequestHeaders.Add("api-key", _apiKey);
+        http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _apiKey);
         http.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
         var payload = JsonSerializer.Serialize(new
         {
-            sender      = new { name = _senderName, email = _senderEmail },
-            to          = new[] { new { email = toEmail } },
-            subject     = subject,
-            htmlContent = htmlBody
+            from    = new { name = _senderName, email = _senderEmail },
+            to      = new[] { new { email = toEmail } },
+            subject = subject,
+            html    = htmlBody
         });
 
         var content  = new StringContent(payload, Encoding.UTF8, "application/json");
-        var response = await http.PostAsync("https://api.brevo.com/v3/smtp/email", content);
+        var response = await http.PostAsync("https://api.mailersend.com/v1/email", content);
 
         if (!response.IsSuccessStatusCode)
         {
             var respBody = await response.Content.ReadAsStringAsync();
-            throw new InvalidOperationException($"Brevo error {(int)response.StatusCode}: {respBody}");
+            throw new InvalidOperationException($"MailerSend error {(int)response.StatusCode}: {respBody}");
         }
     }
 }
