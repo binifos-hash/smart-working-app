@@ -11,9 +11,9 @@ interface Props {
 }
 
 const STATUS_BADGE: Record<string, string> = {
-  Pending: 'bg-yellow-100 text-yellow-800 border-yellow-200',
-  Approved: 'bg-green-100 text-green-800 border-green-200',
-  Rejected: 'bg-red-100 text-red-800 border-red-200',
+  Pending: 'bg-yellow-100 text-yellow-800 border-yellow-200 dark:bg-yellow-900/30 dark:text-yellow-300 dark:border-yellow-700',
+  Approved: 'bg-green-100 text-green-800 border-green-200 dark:bg-green-900/30 dark:text-green-300 dark:border-green-700',
+  Rejected: 'bg-red-100 text-red-800 border-red-200 dark:bg-red-900/30 dark:text-red-300 dark:border-red-700',
 }
 
 const STATUS_LABEL: Record<string, string> = {
@@ -42,37 +42,37 @@ export default function RequestsTable({
   }
 
   return (
-    <div className="overflow-x-auto rounded-xl border border-gray-200">
+    <div className="overflow-x-auto rounded-xl border border-gray-200 dark:border-gray-700">
       <table className="w-full text-sm">
-        <thead className="bg-gray-50 border-b border-gray-200">
+        <thead className="bg-gray-50 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-600">
           <tr>
             {showEmployee && (
-              <th className="text-left px-4 py-3 font-medium text-gray-600">Dipendente</th>
+              <th className="text-left px-4 py-3 font-medium text-gray-600 dark:text-gray-300">Dipendente</th>
             )}
-            <th className="text-left px-4 py-3 font-medium text-gray-600">Data</th>
-            <th className="text-left px-4 py-3 font-medium text-gray-600">Descrizione</th>
-            <th className="text-left px-4 py-3 font-medium text-gray-600">Stato</th>
-            <th className="text-left px-4 py-3 font-medium text-gray-600">Richiesta il</th>
+            <th className="text-left px-4 py-3 font-medium text-gray-600 dark:text-gray-300">Data</th>
+            <th className="text-left px-4 py-3 font-medium text-gray-600 dark:text-gray-300">Descrizione</th>
+            <th className="text-left px-4 py-3 font-medium text-gray-600 dark:text-gray-300">Stato</th>
+            <th className="text-left px-4 py-3 font-medium text-gray-600 dark:text-gray-300">Richiesta il</th>
             {(onApprove || onReject) && (
-              <th className="text-left px-4 py-3 font-medium text-gray-600">Azioni</th>
+              <th className="text-left px-4 py-3 font-medium text-gray-600 dark:text-gray-300">Azioni</th>
             )}
           </tr>
         </thead>
-        <tbody className="divide-y divide-gray-100">
+        <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
           {requests.map((r) => (
-            <tr key={r.id} className="bg-white hover:bg-gray-50 transition-colors">
+            <tr key={r.id} className="bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
               {showEmployee && (
                 <td className="px-4 py-3">
-                  <div className="font-medium text-gray-900">{r.employeeName}</div>
+                  <div className="font-medium text-gray-900 dark:text-white">{r.employeeName}</div>
                   <div className="text-xs text-gray-400">{r.employeeEmail}</div>
                 </td>
               )}
-              <td className="px-4 py-3 font-medium text-gray-900">
+              <td className="px-4 py-3 font-medium text-gray-900 dark:text-white">
                 {format(new Date(r.date + 'T00:00:00'), 'dd MMM yyyy', { locale: it })}
               </td>
-              <td className="px-4 py-3 text-gray-500 max-w-[200px]">
+              <td className="px-4 py-3 text-gray-500 dark:text-gray-400 max-w-[200px]">
                 <span className="truncate block" title={r.description ?? ''}>
-                  {r.description ?? <span className="italic text-gray-300">—</span>}
+                  {r.description ?? <span className="italic text-gray-300 dark:text-gray-600">—</span>}
                 </span>
               </td>
               <td className="px-4 py-3">
@@ -91,7 +91,7 @@ export default function RequestsTable({
                         <button
                           onClick={() => onApprove(r.id)}
                           disabled={loadingId === r.id}
-                          className="bg-green-50 hover:bg-green-100 text-green-700 border border-green-200 text-xs font-medium px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50"
+                          className="bg-green-50 hover:bg-green-100 dark:bg-green-900/20 dark:hover:bg-green-900/40 text-green-700 dark:text-green-400 border border-green-200 dark:border-green-700 text-xs font-medium px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50"
                         >
                           Approva
                         </button>
@@ -100,14 +100,14 @@ export default function RequestsTable({
                         <button
                           onClick={() => onReject(r.id)}
                           disabled={loadingId === r.id}
-                          className="bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 text-xs font-medium px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50"
+                          className="bg-red-50 hover:bg-red-100 dark:bg-red-900/20 dark:hover:bg-red-900/40 text-red-700 dark:text-red-400 border border-red-200 dark:border-red-700 text-xs font-medium px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50"
                         >
                           Rifiuta
                         </button>
                       )}
                     </div>
                   ) : (
-                    <span className="text-gray-300 text-xs">—</span>
+                    <span className="text-gray-300 dark:text-gray-600 text-xs">—</span>
                   )}
                 </td>
               )}

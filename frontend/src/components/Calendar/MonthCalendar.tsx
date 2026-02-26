@@ -46,25 +46,25 @@ export default function MonthCalendar({ requests, onDaySelect, showAddButton = f
   }
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200">
+    <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
       {/* Header */}
-      <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+      <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-gray-700">
         <button
           onClick={() => setCurrentMonth(subMonths(currentMonth, 1))}
-          className="p-1.5 hover:bg-gray-100 rounded-lg transition-colors"
+          className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
         >
-          <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="w-5 h-5 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
           </svg>
         </button>
-        <h2 className="text-base font-semibold text-gray-900 capitalize">
+        <h2 className="text-base font-semibold text-gray-900 dark:text-white capitalize">
           {format(currentMonth, 'MMMM yyyy', { locale: it })}
         </h2>
         <button
           onClick={() => setCurrentMonth(addMonths(currentMonth, 1))}
-          className="p-1.5 hover:bg-gray-100 rounded-lg transition-colors"
+          className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
         >
-          <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="w-5 h-5 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
           </svg>
         </button>
@@ -74,7 +74,7 @@ export default function MonthCalendar({ requests, onDaySelect, showAddButton = f
       <div className="p-4">
         <div className="grid grid-cols-7 mb-2">
           {weekDays.map((d) => (
-            <div key={d} className="text-center text-xs font-medium text-gray-500 py-1">
+            <div key={d} className="text-center text-xs font-medium text-gray-500 dark:text-gray-400 py-1">
               {d}
             </div>
           ))}
@@ -91,14 +91,14 @@ export default function MonthCalendar({ requests, onDaySelect, showAddButton = f
                 onClick={() => handleDayClick(day)}
                 className={`
                   relative min-h-[64px] p-1 rounded-lg cursor-pointer transition-colors
-                  ${inMonth ? 'hover:bg-gray-50' : 'opacity-30'}
-                  ${isSelected ? 'ring-2 ring-blue-500 bg-blue-50' : ''}
+                  ${inMonth ? 'hover:bg-gray-50 dark:hover:bg-gray-700' : 'opacity-30'}
+                  ${isSelected ? 'ring-2 ring-blue-500 bg-blue-50 dark:bg-blue-900/30' : ''}
                 `}
               >
                 <span
                   className={`
                     inline-flex items-center justify-center w-6 h-6 text-sm rounded-full
-                    ${isToday(day) ? 'bg-blue-600 text-white font-bold' : 'text-gray-700'}
+                    ${isToday(day) ? 'bg-blue-600 text-white font-bold' : 'text-gray-700 dark:text-gray-200'}
                   `}
                 >
                   {format(day, 'd')}
@@ -125,8 +125,8 @@ export default function MonthCalendar({ requests, onDaySelect, showAddButton = f
 
       {/* Add button */}
       {showAddButton && selectedDate && isSameMonth(selectedDate, currentMonth) && (
-        <div className="px-6 py-4 border-t border-gray-100 flex items-center justify-between">
-          <span className="text-sm text-gray-600">
+        <div className="px-6 py-4 border-t border-gray-100 dark:border-gray-700 flex items-center justify-between">
+          <span className="text-sm text-gray-600 dark:text-gray-300">
             Selezionato: <strong>{format(selectedDate, 'dd MMMM yyyy', { locale: it })}</strong>
           </span>
           <button
@@ -142,11 +142,11 @@ export default function MonthCalendar({ requests, onDaySelect, showAddButton = f
       )}
 
       {/* Legend */}
-      <div className="px-6 py-3 border-t border-gray-100 flex items-center gap-4">
+      <div className="px-6 py-3 border-t border-gray-100 dark:border-gray-700 flex items-center gap-4">
         {Object.entries(STATUS_COLORS).map(([status, color]) => (
           <div key={status} className="flex items-center gap-1.5">
             <div className={`w-2.5 h-2.5 rounded-full ${color}`} />
-            <span className="text-xs text-gray-500">
+            <span className="text-xs text-gray-500 dark:text-gray-400">
               {status === 'Pending' ? 'In attesa' : status === 'Approved' ? 'Approvato' : 'Rifiutato'}
             </span>
           </div>

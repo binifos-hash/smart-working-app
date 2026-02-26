@@ -48,20 +48,20 @@ export default function AdminPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <Navbar />
 
       <div className="max-w-6xl mx-auto px-4 py-8">
         {/* Tabs */}
-        <div className="flex gap-1 bg-gray-100 p-1 rounded-xl mb-6 w-fit">
+        <div className="flex gap-1 bg-gray-100 dark:bg-gray-800 p-1 rounded-xl mb-6 w-fit">
           {(['calendar', 'requests', 'employees'] as Tab[]).map((t) => (
             <button
               key={t}
               onClick={() => setTab(t)}
               className={`px-5 py-2 rounded-lg text-sm font-medium transition-colors ${
                 tab === t
-                  ? 'bg-white text-gray-900 shadow-sm'
-                  : 'text-gray-500 hover:text-gray-700'
+                  ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm'
+                  : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
               }`}
             >
               {TAB_LABELS[t]}
@@ -80,7 +80,7 @@ export default function AdminPage() {
             <MonthCalendar requests={requests} />
             {pendingRequests.length > 0 && (
               <div>
-                <h2 className="text-lg font-semibold text-gray-900 mb-3">
+                <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">
                   Richieste in attesa
                   <span className="ml-2 text-sm font-normal text-gray-400">
                     ({pendingRequests.length})
@@ -96,7 +96,7 @@ export default function AdminPage() {
               </div>
             )}
             {pendingRequests.length === 0 && (
-              <div className="bg-green-50 border border-green-200 rounded-xl p-6 text-center text-green-700">
+              <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-700 rounded-xl p-6 text-center text-green-700 dark:text-green-400">
                 Nessuna richiesta in attesa di approvazione.
               </div>
             )}
@@ -106,7 +106,7 @@ export default function AdminPage() {
         {/* All requests tab */}
         {tab === 'requests' && (
           <div>
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
               Tutte le richieste
               <span className="ml-2 text-sm font-normal text-gray-400">({requests.length})</span>
             </h2>
@@ -127,7 +127,7 @@ export default function AdminPage() {
         {/* Employees tab */}
         {tab === 'employees' && (
           <div>
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
               Dipendenti
               <span className="ml-2 text-sm font-normal text-gray-400">({employees.length})</span>
             </h2>
@@ -138,21 +138,21 @@ export default function AdminPage() {
                 Nessun dipendente assegnato.
               </div>
             ) : (
-              <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+              <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
                 <table className="w-full text-sm">
-                  <thead className="bg-gray-50 border-b border-gray-200">
+                  <thead className="bg-gray-50 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-600">
                     <tr>
-                      <th className="text-left px-4 py-3 font-medium text-gray-600">Nome</th>
-                      <th className="text-left px-4 py-3 font-medium text-gray-600">Cognome</th>
-                      <th className="text-left px-4 py-3 font-medium text-gray-600">Email</th>
+                      <th className="text-left px-4 py-3 font-medium text-gray-600 dark:text-gray-300">Nome</th>
+                      <th className="text-left px-4 py-3 font-medium text-gray-600 dark:text-gray-300">Cognome</th>
+                      <th className="text-left px-4 py-3 font-medium text-gray-600 dark:text-gray-300">Email</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-gray-100">
+                  <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
                     {employees.map((emp) => (
-                      <tr key={emp.id} className="hover:bg-gray-50 transition-colors">
-                        <td className="px-4 py-3 font-medium text-gray-900">{emp.firstName}</td>
-                        <td className="px-4 py-3 text-gray-700">{emp.lastName}</td>
-                        <td className="px-4 py-3 text-gray-500">{emp.email}</td>
+                      <tr key={emp.id} className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                        <td className="px-4 py-3 font-medium text-gray-900 dark:text-white">{emp.firstName}</td>
+                        <td className="px-4 py-3 text-gray-700 dark:text-gray-300">{emp.lastName}</td>
+                        <td className="px-4 py-3 text-gray-500 dark:text-gray-400">{emp.email}</td>
                       </tr>
                     ))}
                   </tbody>
