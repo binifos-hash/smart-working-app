@@ -8,6 +8,7 @@ export interface AuthUser {
   lastName: string
   role: UserRole
   userId: number
+  mustChangePassword?: boolean
 }
 
 export interface SmartWorkingRequest {

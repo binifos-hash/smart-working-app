@@ -15,4 +15,5 @@ public class User
     public ICollection<User> Employees { get; set; } = new List<User>();
     public ICollection<SmartWorkingRequest> Requests { get; set; } = new List<SmartWorkingRequest>();
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public bool MustChangePassword { get; set; } = false;
 }

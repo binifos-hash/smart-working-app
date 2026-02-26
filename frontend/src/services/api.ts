@@ -24,6 +24,9 @@ export const register = (email: string, firstName: string, lastName: string, pas
 export const forgotPassword = (email: string) =>
   api.post<{ message: string }>('/auth/forgot-password', { email }).then((r) => r.data)
 
+export const changePassword = (currentPassword: string, newPassword: string) =>
+  api.post<{ message: string }>('/auth/change-password', { currentPassword, newPassword }).then((r) => r.data)
+
 // Requests
 export const getMyRequests = () =>
   api.get<SmartWorkingRequest[]>('/requests').then((r) => r.data)

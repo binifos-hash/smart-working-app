@@ -42,7 +42,8 @@ public class AuthService : IAuthService
             FirstName = user.FirstName,
             LastName = user.LastName,
             Role = user.Role.ToString(),
-            UserId = user.Id
+            UserId = user.Id,
+            MustChangePassword = user.MustChangePassword
         };
     }
 
@@ -89,6 +90,7 @@ public class AuthService : IAuthService
 
         var tempPassword = GenerateTempPassword();
         user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(tempPassword);
+        user.MustChangePassword = true;
         await _userRepository.UpdateAsync(user);
 
         _ = Task.Run(async () =>
@@ -104,6 +106,22 @@ public class AuthService : IAuthService
         });
 
         return true;
+    }
+
+    public async Task<(bool Success, string? Error)> ChangePasswordAsync(int userId, ChangePasswordDto dto)
+    {
+        var user = await _userRepository.GetByIdAsync(userId);
+        if (user == null)
+            return (false, "Utente non trovato.");
+
+        if (!BCrypt.Net.BCrypt.Verify(dto.CurrentPassword, user.PasswordHash))
+            return (false, "La password attuale non è corretta.");
+
+        user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.NewPassword);
+        user.MustChangePassword = false;
+        await _userRepository.UpdateAsync(user);
+
+        return (true, null);
     }
 
     private static string GenerateTempPassword()

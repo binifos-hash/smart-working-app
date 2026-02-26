@@ -1,3 +1,5 @@
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SmartWorking.Application.DTOs.Auth;
 using SmartWorking.Application.Services;
@@ -49,5 +51,23 @@ public class AuthController : ControllerBase
 
         await _authService.ForgotPasswordAsync(dto);
         return Ok(new { message = "Se l'indirizzo è registrato, riceverai un'email con la password temporanea." });
+    }
+
+    [Authorize]
+    [HttpPost("change-password")]
+    public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordDto dto)
+    {
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
+
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (!int.TryParse(userIdClaim, out var userId))
+            return Unauthorized();
+
+        var (success, error) = await _authService.ChangePasswordAsync(userId, dto);
+        if (!success)
+            return BadRequest(new { message = error });
+
+        return Ok(new { message = "Password aggiornata con successo." });
     }
 }

@@ -41,7 +41,11 @@ export default function LoginPage() {
     try {
       const user = await api.login(email, password)
       login(user)
-      navigate(user.role === 'Manager' ? '/admin' : '/employee', { replace: true })
+      if (user.mustChangePassword) {
+        navigate('/change-password', { replace: true })
+      } else {
+        navigate(user.role === 'Manager' ? '/admin' : '/employee', { replace: true })
+      }
     } catch {
       setError('Email o password non corretti.')
     } finally {
